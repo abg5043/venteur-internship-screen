@@ -27,6 +27,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+// Pane for users to see, choose, and enroll in policies
 const PolicyPane = (props) => {
   const {
     policies, gender, smoker, age, zipId, setSuccessAlert, setFailAlert,
@@ -40,18 +41,20 @@ const PolicyPane = (props) => {
   const [termError, setTermError] = useState(false);
   const [policyIdError, setPolicyIdError] = useState(false);
 
-  const products = [];
+  const classes = useStyles();
 
+  // filters through policies to find distinct carriers
+  const carriers = [];
   policies.forEach((policy) => {
-    if (!products.includes(policy.carrierName)) {
-      products.push(policy.carrierName);
+    if (!carriers.includes(policy.carrierName)) {
+      carriers.push(policy.carrierName);
     }
   });
-  products.sort();
+  carriers.sort();
 
+  // Function for rendering rows of product table
   const renderRows = (renderProps) => {
     const { style, index } = renderProps;
-
     /* If user has not yet stated their term and benefit preferences,
      * just return the list of providers
      */
@@ -59,7 +62,7 @@ const PolicyPane = (props) => {
       return (
         <ListItem button style={style} key={index}>
           <ListItemText
-            primary={products[index]}
+            primary={carriers[index]}
           />
         </ListItem>
       );
@@ -78,14 +81,15 @@ const PolicyPane = (props) => {
     );
   };
 
-  const classes = useStyles();
-
+  // Function for validating integers
   const isNormalInteger = (str) => {
     const n = Math.floor(Number(str));
     return n !== Infinity && String(n) === str && n > 0;
   };
 
+  // Handles user's attempt to enroll in policy and subsequent API call
   const handleEnrollPost = () => {
+    // validates user input is done correctly
     if (policyId === '') {
       setPolicyIdError(true);
     } else {
@@ -117,6 +121,7 @@ const PolicyPane = (props) => {
     }
   };
 
+  // Handles user's submission of benefit amounts and term limits; generates quotes for the user
   const handleSubmit = () => {
     // Tests if you have any invalid or missing inputs inputs
     if (!isNormalInteger(benefitAmt)
@@ -164,6 +169,7 @@ const PolicyPane = (props) => {
           );
         }
       });
+      // sets the state for quotes
       setQuotedProducts(tempArr);
     }
   };
@@ -236,7 +242,6 @@ const PolicyPane = (props) => {
               <MenuItem key="wholelife" value="wholelife">Whole Life</MenuItem>
             </Select>
             {termError && <FormHelperText>This is required!</FormHelperText>}
-
           </FormControl>
         </div>
         <div className={classes.section}>
@@ -261,7 +266,7 @@ const PolicyPane = (props) => {
               height={height}
               width={width}
               itemSize={46}
-              itemCount={products.length}
+              itemCount={carriers.length}
             >
               {renderRows}
             </FixedSizeList>

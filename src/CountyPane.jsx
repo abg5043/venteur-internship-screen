@@ -17,6 +17,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+// Pane for users to confirm their county if there is more than one to a zip
 const CountyPane = (props) => {
   const { zipId, setZipId } = props;
   const [value, setValue] = useState('');
@@ -25,8 +26,10 @@ const CountyPane = (props) => {
   const classes = useStyles();
 
   const handleSubmit = () => {
+    // validates user input is done correctly
     if (value === '') {
       setCountyError(true);
+    // If all is ok, zipId state can be set
     } else {
       setCountyError(false);
       setZipId([value]);
@@ -78,6 +81,6 @@ CountyPane.propTypes = {
       state: PropTypes.string,
       zip: PropTypes.string,
     }),
-).isRequired,
+  ).isRequired,
   setZipId: PropTypes.func.isRequired,
 };

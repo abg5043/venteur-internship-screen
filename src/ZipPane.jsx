@@ -22,13 +22,21 @@ const ZipPane = (props) => {
   const { setZipId } = props;
   const classes = useStyles();
 
+  // Function for validating integers
+  const isNormalInteger = (str) => {
+    const n = Math.floor(Number(str));
+    return n !== Infinity && String(n) === str && n > 0;
+  };
+
+  // Handles submission of zip code and subsequent API call
   const handleSubmit = () => {
     const zipId = [];
-
-    if (zip === undefined || zip.length !== 5) {
+    // validates zip code is entered properly to avoid unnecessary API calls
+    if (zip === undefined || zip.length !== 5 || !isNormalInteger(zip)) {
       setZipError(true);
       setZipErrorMessage('Please enter a valid zip code');
-    } else if (zip !== undefined) {
+    // If all is ok, go to the API call
+    } else {
       setZipError(false);
       setZipErrorMessage('');
 
@@ -37,6 +45,7 @@ const ZipPane = (props) => {
         .then(async (response) => {
           const data = await response.json();
 
+          // Checks that a zip code ID has been returned
           if (!response.ok) {
             setZipError(true);
             setZipErrorMessage('Please enter a valid zip code');

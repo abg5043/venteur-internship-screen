@@ -40,12 +40,15 @@ const UserInfoPane = (props) => {
 
   const classes = useStyles();
 
+  // function for validating integers
   function isNormalInteger(str) {
     const n = Math.floor(Number(str));
     return n !== Infinity && String(n) === str && n > 0;
   }
 
+  // handles user's submission of their age, gender, and smoking status and subsequent API call
   const handleSubmit = () => {
+    // validates proper user input
     if (!isNormalInteger(age) || gender === '' || smoker === '') {
       if (!isNormalInteger(age)) {
         setAgeError(true);
@@ -66,6 +69,7 @@ const UserInfoPane = (props) => {
       } else if (smoker !== '') {
         setSmokerError(false);
       }
+    // If all is ok, the api call can be made to generage quotes
     } else {
       setAgeError(false);
       setSmokerError(false);
@@ -155,7 +159,7 @@ UserInfoPane.propTypes = {
   zipId: PropTypes.arrayOf(PropTypes.string).isRequired,
   gender: PropTypes.string.isRequired,
   setGender: PropTypes.func.isRequired,
-  age: PropTypes.string,
+  age: PropTypes.string.isRequired,
   setAge: PropTypes.func.isRequired,
   smoker: PropTypes.string.isRequired,
   setSmoker: PropTypes.func.isRequired,

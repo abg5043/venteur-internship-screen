@@ -11,7 +11,7 @@ function App() {
   const [policies, setPolicies] = useState();
   const [gender, setGender] = useState('');
   const [smoker, setSmoker] = useState('');
-  const [age, setAge] = useState();
+  const [age, setAge] = useState('');
   const [successAlert, setSuccessAlert] = useState(false);
   const [failAlert, setFailAlert] = useState(false);
 
@@ -29,14 +29,18 @@ function App() {
     return null;
   };
 
-  //Conditionally renders the user's views
+  // Conditionally renders the user's views
   const renderElements = () => {
+    // If users haven't generated any policies, they start here
     if (policies === undefined) {
       if (zipId === undefined) {
+        // First pane users see to enter zip code
         return <ZipPane setZipId={setZipId} />;
       } if (zipId.length > 1) {
+        // If their zip code returns more than one zip code, show them this
         return <CountyPane setZipId={setZipId} zipId={zipId} />;
       }
+      // Third pane allows users to enter the last of their info & generate policies to enroll in
       return (
         <UserInfoPane
           zipId={zipId}
@@ -50,6 +54,7 @@ function App() {
         />
       );
     }
+    // Users see policies and choose from one here
     return (
       <PolicyPane
         policies={policies}
