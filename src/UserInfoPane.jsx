@@ -29,7 +29,7 @@ const UserInfoPane = (props) => {
     age,
     setAge,
     smoker,
-    setSmoker
+    setSmoker,
   } = props;
 
   const [ageError, setAgeError] = useState(false);
@@ -45,7 +45,7 @@ const UserInfoPane = (props) => {
   }
 
   const handleSubmit = () => {
-    if (!isNormalInteger(age) || gender == undefined || smoker == undefined) {
+    if (!isNormalInteger(age) || gender === undefined || smoker === undefined) {
       if (!isNormalInteger(age)) {
         setAgeError(true);
         setAgeErrorMessage('Please enter a valid age');
@@ -54,15 +54,15 @@ const UserInfoPane = (props) => {
         setAgeErrorMessage('');
       }
 
-      if (gender == undefined) {
+      if (gender === undefined) {
         setGenderError(true);
-      } else if (gender !=undefined) {
+      } else if (gender !== undefined) {
         setGenderError(false);
       }
 
-      if (smoker == undefined) {
+      if (smoker === undefined) {
         setSmokerError(true);
-      } else if (smoker != undefined) {
+      } else if (smoker !== undefined) {
         setSmokerError(false);
       }
     } else {
@@ -85,7 +85,6 @@ const UserInfoPane = (props) => {
       })
         .then((response) => response.json())
         .then((json) => {
-          console.log(json);
           setPolicies(json);
         });
     }

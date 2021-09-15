@@ -3,7 +3,7 @@ import Typography from '@material-ui/core/Typography';
 import ZipPane from './ZipPane';
 import CountyPane from './CountyPane';
 import UserInfoPane from './UserInfoPane';
-import PolicyPane from "./PolicyPane";
+import PolicyPane from './PolicyPane';
 
 function App() {
   const [zipId, setZipId] = useState();
@@ -19,7 +19,8 @@ function App() {
       } if (zipId.length > 1) {
         return <CountyPane setZipId={setZipId} zipId={zipId} />;
       }
-      return <UserInfoPane
+      return (
+        <UserInfoPane
           zipId={zipId}
           setPolicies={setPolicies}
           age={age}
@@ -28,16 +29,18 @@ function App() {
           setGender={setGender}
           smoker={smoker}
           setSmoker={setSmoker}
-      />;
-    } else {
-      return <PolicyPane
-          policies={policies}
-          zipId={zipId}
-          age={age}
-          gender={gender}
-          smoker={smoker}
-      />
+        />
+      );
     }
+    return (
+      <PolicyPane
+        policies={policies}
+        zipId={zipId}
+        age={age}
+        gender={gender}
+        smoker={smoker}
+      />
+    );
   };
 
   return (
