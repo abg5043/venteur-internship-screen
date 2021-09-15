@@ -6,6 +6,7 @@ import {
   FormControl, FormHelperText, InputLabel, MenuItem, Select,
 } from '@material-ui/core';
 import TextField from '@material-ui/core/TextField';
+import PropTypes from 'prop-types';
 
 const useStyles = makeStyles((theme) => ({
   section: {
@@ -45,7 +46,7 @@ const UserInfoPane = (props) => {
   }
 
   const handleSubmit = () => {
-    if (!isNormalInteger(age) || gender === undefined || smoker === undefined) {
+    if (!isNormalInteger(age) || gender === '' || smoker === '') {
       if (!isNormalInteger(age)) {
         setAgeError(true);
         setAgeErrorMessage('Please enter a valid age');
@@ -54,15 +55,15 @@ const UserInfoPane = (props) => {
         setAgeErrorMessage('');
       }
 
-      if (gender === undefined) {
+      if (gender === '') {
         setGenderError(true);
-      } else if (gender !== undefined) {
+      } else if (gender !== '') {
         setGenderError(false);
       }
 
-      if (smoker === undefined) {
+      if (smoker === '') {
         setSmokerError(true);
-      } else if (smoker !== undefined) {
+      } else if (smoker !== '') {
         setSmokerError(false);
       }
     } else {
@@ -148,3 +149,14 @@ const UserInfoPane = (props) => {
 };
 
 export default UserInfoPane;
+
+UserInfoPane.propTypes = {
+  setPolicies: PropTypes.func.isRequired,
+  zipId: PropTypes.arrayOf(PropTypes.string).isRequired,
+  gender: PropTypes.string.isRequired,
+  setGender: PropTypes.func.isRequired,
+  age: PropTypes.string,
+  setAge: PropTypes.func.isRequired,
+  smoker: PropTypes.string.isRequired,
+  setSmoker: PropTypes.func.isRequired,
+};

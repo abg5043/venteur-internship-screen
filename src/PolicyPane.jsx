@@ -8,6 +8,7 @@ import {
 import TextField from '@material-ui/core/TextField';
 import { FixedSizeList } from 'react-window';
 import AutoSizer from 'react-virtualized-auto-sizer';
+import PropTypes from 'prop-types';
 
 const useStyles = makeStyles((theme) => ({
   section: {
@@ -28,16 +29,16 @@ const useStyles = makeStyles((theme) => ({
 
 const PolicyPane = (props) => {
   const {
-    policies, gender, smoker, age, zipId,
+    policies, gender, smoker, age, zipId, setSuccessAlert, setFailAlert,
   } = props;
   const [quotedProducts, setQuotedProducts] = useState();
-  const [policyId, setPolicyId] = useState();
+  const [policyId, setPolicyId] = useState('');
   const [benefitAmt, setBenefitAmt] = useState();
   const [benefitError, setBenefitError] = useState(false);
   const [benefitErrorMessage, setBenefitErrorMessage] = useState('');
-  const [term, setTerm] = useState();
+  const [term, setTerm] = useState('');
   const [termError, setTermError] = useState(false);
-  const [productError, setProductError] = useState(false);
+  const [policyIdError, setPolicyIdError] = useState(false);
 
   const products = [];
 
@@ -48,13 +49,14 @@ const PolicyPane = (props) => {
   });
   products.sort();
 
-  const renderRows = (props) => {
-    const { style, index } = props;
+  const renderRows = (renderProps) => {
+    const { style, index } = renderProps;
 
-    //If user has not yet stated their term and benefit preferences, just return the list of providers
+    /* If user has not yet stated their term and benefit preferences,
+     * just return the list of providers
+     */
     if (quotedProducts === undefined) {
       return (
-
         <ListItem button style={style} key={index}>
           <ListItemText
             primary={products[index]}
@@ -62,87 +64,121 @@ const PolicyPane = (props) => {
         </ListItem>
       );
     }
-
-    //If user has stated their term and benefit preferences, return the list of providers and their costs
+    /* If user has stated their term and benefit preferences,
+     * return the list of providers and their costs
+     */
     return (
-      {/* <ListItem button style={style} key={index}>
-            <ListItemText
-                primary={products[index]}
-            />
-          </ListItem> */}
+      <ListItem button style={style} key={index}>
+        <ListItemText
+          primary={quotedProducts[index].name}
+          secondary={`$${quotedProducts[index].annualPremium} per year ($${
+            (quotedProducts[index].annualPremium / 12).toFixed(2)} per month)`}
+        />
+      </ListItem>
     );
   };
 
   const classes = useStyles();
 
-  function isNormalInteger(str) {
+  const isNormalInteger = (str) => {
     const n = Math.floor(Number(str));
     return n !== Infinity && String(n) === str && n > 0;
-  }
+  };
 
   const handleEnrollPost = () => {
-    const requestOptions = {
-      method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        'Content-type': 'application/json',
-      },
-      body: JSON.stringify({
-        zipCountyId: zipId[0].id,
-        age,
-        gender,
-        smoker,
-        policyId: policies[0].id,
-        benefitAmount: policies[0].maxBenefitAmount - 1,
-      }),
-    };
+    if (policyId === '') {
+      setPolicyIdError(true);
+    } else {
+      setPolicyIdError(false);
+      const requestOptions = {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-type': 'application/json',
+        },
+        body: JSON.stringify({
+          zipCountyId: zipId[0],
+          age,
+          gender,
+          smoker,
+          policyId,
+          benefitAmount: benefitAmt,
+        }),
+      };
 
-    fetch('http://tech-screen.venteur.co/Policies/Enroll', requestOptions);
+      fetch('http://tech-screen.venteur.co/Policies/Enroll', requestOptions)
+        .then((response) => {
+          if (response.ok) {
+            setSuccessAlert(true);
+          } else {
+            setFailAlert(true);
+          }
+        });
+    }
   };
 
   const handleSubmit = () => {
-    //Tests if you have any invalid or missing inputs inputs
+    // Tests if you have any invalid or missing inputs inputs
     if (!isNormalInteger(benefitAmt)
         || benefitAmt < 1
         || benefitAmt > 999999
-        || term === undefined
+        || term === ''
     ) {
-
-      //Sets error if benefit is invalid or missing and corrects error if not
+      // Sets error if benefit is invalid or missing and corrects error if not
       if (!isNormalInteger(benefitAmt) || benefitAmt < 1 || benefitAmt > 999999) {
         setBenefitError(true);
         setBenefitErrorMessage('Please enter a valid benefit');
       } else if (isNormalInteger(benefitAmt) || benefitAmt > 1 || benefitAmt < 999999) {
-      setBenefitError(false);
-      setBenefitErrorMessage('');
+        setBenefitError(false);
+        setBenefitErrorMessage('');
       }
 
-      //Sets error if term missing and corrects error if not
-      if (term === undefined) {
+      // Sets error if term missing and corrects error if not
+      if (term === '') {
         setTermError(true);
       } else if (term !== undefined) {
         setTermError(false);
       }
 
-      //If all is fine with inputs, reset the error messages and filter the data
+      // If all is fine with inputs, reset the error messages and filter the data
     } else {
       setBenefitError(false);
       setBenefitErrorMessage('');
       setTermError(false);
+
+      // filters the policies based on user input for term and benefitAmount
+      const tempArr = [];
+      policies.forEach((policy) => {
+        if (
+          !tempArr.includes(policy.carrierName)
+            && policy.minBenefitAmount <= benefitAmt
+            && policy.maxBenefitAmount > benefitAmt
+            && policy.term.toLowerCase() === term.toLowerCase()
+        ) {
+          tempArr.push(
+            {
+              name: policy.carrierName,
+              id: policy.id,
+              annualPremium: ((benefitAmt / 5000.00) * policy.annualPremiumRate).toFixed(2),
+            },
+          );
+        }
+      });
+      setQuotedProducts(tempArr);
     }
   };
 
-  //Conditionally renders elements depending on if user has stated their term/benefit preferences
+  // Conditionally renders elements depending on if user has stated their term/benefit preferences
   const renderElements = () => {
-    // If user has not submitted preferences for term length and benefit amount
+    // If user has submitted preferences for term length and benefit amount, return this
     if (quotedProducts !== undefined) {
       return (
         <div>
           <div className={classes.section}>
             <Typography gutterBottom variant="body2">
-              Please select a policy by policy number.
+              Please select a policy from the ones below by provider name.
             </Typography>
-            <FormControl className={classes.formControl} error={productError}>
+            <FormControl className={classes.formControl} error={policyIdError}>
               <InputLabel id="policy-select-label">Policy</InputLabel>
               <Select
                 labelId="policy-select-label"
@@ -152,21 +188,20 @@ const PolicyPane = (props) => {
                   setPolicyId(event.target.value);
                 }}
               >
-
-                //INSERT MAP HERE WITH: NAME: PRICE
-                //HAVE THE USER SELECT EXACTLY THIS ARRAY OR JUST THE NAMES
-
+                {quotedProducts.map((product) => (
+                  <MenuItem key={product.id} value={product.id}>{product.name}</MenuItem>
+                ))}
               </Select>
-              {productError && <FormHelperText>This is required!</FormHelperText>}
+              {policyIdError && <FormHelperText>This is required!</FormHelperText>}
             </FormControl>
           </div>
           <div className={classes.section}>
-            <Button variant="contained" onClick={handleSubmit}>Submit</Button>
+            <Button variant="contained" onClick={handleEnrollPost}>Submit</Button>
           </div>
         </div>
       );
     }
-    // If user has submitted their preferences for policies, return this
+    // If user has not submitted their preferences for benefits and term amount, return this
     return (
       <div>
         <div className={classes.section}>
@@ -207,25 +242,6 @@ const PolicyPane = (props) => {
         <div className={classes.section}>
           <Button variant="contained" onClick={handleSubmit}>Submit</Button>
         </div>
-        <div>
-          <Typography gutterBottom variant="h5">
-            Available products
-          </Typography>
-        </div>
-        <div className={classes.rows}>
-          <AutoSizer>
-            {({ height, width }) => (
-              <FixedSizeList
-                height={height}
-                width={width}
-                itemSize={46}
-                itemCount={products.length}
-              >
-                {renderQuotedProducts}
-              </FixedSizeList>
-            )}
-          </AutoSizer>
-        </div>
       </div>
     );
   };
@@ -257,3 +273,23 @@ const PolicyPane = (props) => {
 };
 
 export default PolicyPane;
+
+PolicyPane.propTypes = {
+  policies: PropTypes.arrayOf(
+    PropTypes.shape({
+      annualPremiumRate: PropTypes.number,
+      carrierName: PropTypes.string,
+      id: PropTypes.string,
+      maxBenefitAmount: PropTypes.number,
+      minBenefitAmount: PropTypes.number,
+      term: PropTypes.string,
+      zipCountyId: PropTypes.string,
+    }),
+  ).isRequired,
+  gender: PropTypes.string.isRequired,
+  age: PropTypes.string.isRequired,
+  smoker: PropTypes.string.isRequired,
+  zipId: PropTypes.arrayOf(PropTypes.string).isRequired,
+  setSuccessAlert: PropTypes.func.isRequired,
+  setFailAlert: PropTypes.func.isRequired,
+};

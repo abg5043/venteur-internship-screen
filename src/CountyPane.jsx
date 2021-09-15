@@ -3,8 +3,9 @@ import { makeStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
 import Typography from '@material-ui/core/Typography';
 import {
-  FormControl, InputLabel, MenuItem, Select,
+  FormControl, FormHelperText, InputLabel, MenuItem, Select,
 } from '@material-ui/core';
+import PropTypes from 'prop-types';
 
 const useStyles = makeStyles((theme) => ({
   section: {
@@ -19,11 +20,17 @@ const useStyles = makeStyles((theme) => ({
 const CountyPane = (props) => {
   const { zipId, setZipId } = props;
   const [value, setValue] = useState('');
+  const [countyError, setCountyError] = useState(false);
 
   const classes = useStyles();
 
   const handleSubmit = () => {
-    setZipId([value]);
+    if (value === '') {
+      setCountyError(true);
+    } else {
+      setCountyError(false);
+      setZipId([value]);
+    }
   };
 
   const handleChange = (event) => {
@@ -36,7 +43,7 @@ const CountyPane = (props) => {
         <Typography gutterBottom variant="body2">
           Please confirm your county.
         </Typography>
-        <FormControl className={classes.formControl}>
+        <FormControl className={classes.formControl} error={countyError}>
           <InputLabel id="county-select-label">County</InputLabel>
           <Select
             labelId="county-select-label"
@@ -48,6 +55,8 @@ const CountyPane = (props) => {
               <MenuItem key={zip.id} value={zip.id}>{zip.county}</MenuItem>
             ))}
           </Select>
+          {countyError && <FormHelperText>This is required!</FormHelperText>}
+
         </FormControl>
       </div>
       <div className={classes.section}>
@@ -59,3 +68,16 @@ const CountyPane = (props) => {
 };
 
 export default CountyPane;
+
+CountyPane.propTypes = {
+  zipId: PropTypes.arrayOf(
+    PropTypes.shape({
+      city: PropTypes.string,
+      county: PropTypes.string,
+      id: PropTypes.string,
+      state: PropTypes.string,
+      zip: PropTypes.string,
+    }),
+).isRequired,
+  setZipId: PropTypes.func.isRequired,
+};
